@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Goitse • Surprise Mode</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+    body {font-family: 'Inter', system-ui, sans-serif;}
+    .title {font-family: 'Space Grotesk', sans-serif;}
+    .bg-shift {
+      background: linear-gradient(135deg,#1e3a8a 0%,#7c3aed 50%,#ec4899 100%);
+      background-size:400% 400%;
+      animation:shift 12s ease infinite;
+    }
+    @keyframes shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .btn {transition: transform .15s ease, box-shadow .2s ease}
+    .btn:active {transform: scale(.96)}
+    .toast {position: fixed; left: 50%; transform: translateX(-50%) translateY(20px); bottom: 24px; opacity: 0; pointer-events: none}
+    .toast.show {opacity: 1; transform: translateX(-50%) translateY(0);}
+  </style>
+</head>
+<body class="bg-black text-white overflow-x-hidden">
+
+<nav class="fixed top-0 w-full bg-black/70 backdrop-blur border-b border-white/10 z-50">
+  <div class="flex justify-between items-center px-5 py-4 max-w-6xl mx-auto">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center font-bold">G</div>
+      <span class="title text-xl font-bold">GOITSE</span>
+    </div>
+    <div class="flex items-center gap-4 text-sm">
+      <button class="text-zinc-300" onclick="go('about')">About</button>
+      <button class="text-zinc-300" onclick="go('vibes')">Vibes</button>
+      <button class="text-zinc-300" onclick="go('tools')">Tools</button>
+    </div>
+  </div>
+</nav>
+
+<section id="hero" class="min-h-screen flex flex-col justify-center items-center bg-shift px-5 text-center pt-20">
+  <h1 class="title text-5xl sm:text-6xl font-bold leading-tight mb-4">Hey Goitse ✨</h1>
+  <p class="max-w-sm sm:max-w-md text-lg sm:text-xl text-zinc-200">
+    Student ➜ Story-teller ➜ Slot-math geek ➜ Chess grinder ➜ Future media disruptor. Live from Jozi.
+  </p>
+  <div class="flex gap-3 mt-8">
+    <button id="surpriseBtn" class="btn bg-gradient-to-r from-yellow-300 to-pink-500 px-6 py-3 rounded-2xl font-bold text-black">
+      Surprise 🔥
+    </button>
+    <button class="btn border border-white/40 px-6 py-3 rounded-2xl" onclick="go('about')">Explore</button>
+  </div>
+
+  <div id="moodBadge" class="mt-8 bg-white/10 backdrop-blur px-4 py-2 rounded-full text-xs flex items-center gap-2">
+    <span class="h-2 w-2 rounded-full bg-green-500 animate-ping"></span>
+    <span class="relative h-2 w-2 rounded-full bg-green-500"></span>
+    <span id="moodText">Ambitious mode</span>
+  </div>
+</section>
+
+<section id="about" class="py-20 px-6">
+  <div class="max-w-xl mx-auto text-center space-y-6">
+    <h2 class="title text-3xl font-bold">Who is this?</h2>
+    <p class="text-zinc-400">
+      Someone who realized arguing with ideas is more fun than arguing with bugs. Still builds. Just smarter now.
+    </p>
+  </div>
+</section>
+
+<section id="vibes" class="py-16 px-6 bg-zinc-950">
+  <h2 class="title text-3xl font-bold text-center mb-10">Current Vibes</h2>
+  <div class="max-w-md mx-auto grid gap-4">
+    <div class="p-4 rounded-2xl bg-zinc-900 border border-white/5">🎧 Amapiano — because silence is suspicious</div>
+    <div class="p-4 rounded-2xl bg-zinc-900 border border-white/5">💻 Building at random hours</div>
+    <div class="p-4 rounded-2xl bg-zinc-900 border border-white/5">🧠 Overthinking everything</div>
+    <div class="p-4 rounded-2xl bg-zinc-900 border border-white/5">🚀 Long-term thinking in short-term chaos</div>
+  </div>
+</section>
+
+<section id="tools" class="py-16 px-6">
+  <h2 class="title text-3xl font-bold text-center mb-10">Playground</h2>
+  <div class="max-w-md mx-auto grid gap-4">
+    <button class="btn p-4 rounded-2xl bg-zinc-900 border border-white/10 text-left" onclick="rollAdvice()">
+      🎲 Get a random reality check
+    </button>
+    <button class="btn p-4 rounded-2xl bg-zinc-900 border border-white/10 text-left" onclick="toggleTheme()">
+      🌓 Toggle dark/light mood (because why not)
+    </button>
+    <button class="btn p-4 rounded-2xl bg-zinc-900 border border-white/10 text-left" onclick="boost()">
+      ⚡ Quick boost (micro animation)
+    </button>
+  </div>
+</section>
+
+<footer class="py-12 text-center text-xs text-zinc-500">
+  Built with questionable amounts of caffeine • 2026 Johannesburg
+</footer>
+
+<div id="toast" class="toast bg-white text-black px-5 py-3 rounded-2xl shadow-xl"></div>
+
+<script>
+function go(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function pulse(){
+  document.body.style.transition='transform .18s ease';
+  document.body.style.transform='scale(1.02)';
+  setTimeout(()=>document.body.style.transform='scale(1)',180);
+}
+
+const moods = ['Ambitious mode','Tactical focus','Chaotic good','Zen & ZAR','Debate-ready'];
+const surprises = [
+  'You already survived 100% of your worst days.',
+  'Stop scrolling. Start something tiny.',
+  'Momentum beats motivation. Always.',
+  'Future you is watching. Don’t embarrass him.',
+  'That idea you keep dodging? Open it.'
+];
+let light = false;
+
+function updateMood(){
+  const m = moods[Math.floor(Math.random()*moods.length)];
+  document.getElementById('moodText').textContent = m;
+}
+function surprise(){
+  const s = surprises[Math.floor(Math.random()*surprises.length)];
+  showToast('⚡ ' + s);
+  pulse();
+  updateMood();
+}
+function rollAdvice(){
+  const s = surprises[Math.floor(Math.random()*surprises.length)];
+  showToast('🧠 ' + s);
+}
+function toggleTheme(){
+  light = !light;
+  document.body.classList.toggle('bg-white', light);
+  document.body.classList.toggle('text-black', light);
+  document.body.classList.toggle('bg-black', !light);
+  document.body.classList.toggle('text-white', !light);
+  showToast(light ? 'Light mood activated' : 'Back to the dark side');
+}
+function boost(){
+  pulse();
+  showToast('Tiny boost granted');
+}
+
+const btn = document.getElementById('surpriseBtn');
+btn.addEventListener('click', surprise);
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key.toLowerCase()==='g'){
+    boost();
+    showToast('GOITSE MODE');
+  }
+});
+</script>
+
+</body>
+</html>
