@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Forex Paper Trader (React)</title>
+<!-- React + ReactDOM (UMD) and Babel, all from CDN. No build step. -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>html,body,#root{height:100%;margin:0;background:#0e1116;}</style>
+</head>
+<body>
+<div id="root" style="color:#8b949e;font:14px system-ui;padding:20px;">Loading…</div>
+<script>
+/*
+ * Loads the canonical ./ForexPaperTrader.jsx at runtime (single source of
+ * truth — no duplicated component code), strips its ES module import/export
+ * so it can run against the UMD React global, transpiles the JSX with Babel
+ * standalone, then mounts it.
+ */
+(async function () {
+  const root = document.getElementById("root");
+  try {
+    const res = await fetch("./ForexPaperTrader.jsx");
+    if (!res.ok) throw new Error("Could not fetch ForexPaperTrader.jsx (" + res.status + ")");
+    let src = await res.text();
+
+    // Drop ES module import lines; hooks come from the React global instead.
+    src = src.replace(/^\s*import[^;]*;\s*$/gm, "");
+    // Turn the default export into a plain top-level declaration.
+    src = src.replace(/export\s+default\s+function\s+ForexPaperTrader/, "function ForexPaperTrader");
+    src = src.replace(/export\s+default\s+/, "");
+
+    const prelude =
+      "const { useEffect, useRef, useState, useCallback, useMemo } = React;\n";
+
+    const { code } = Babel.transform(prelude + src, {
+      presets: ["react"],
+      filename: "ForexPaperTrader.jsx",
+    });
+
+    // eslint-disable-next-line no-new-func
+    const factory = new Function("React", code + "\nreturn ForexPaperTrader;");
+    const ForexPaperTrader = factory(React);
+
+    ReactDOM.createRoot(root).render(React.createElement(ForexPaperTrader));
+  } catch (err) {
+    root.style.color = "#f85149";
+    root.textContent =
+      "Failed to load app: " + err.message +
+      " — serve this folder over http:// (e.g. `npx serve` or GitHub Pages), not file://, so the .jsx fetch is allowed.";
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
