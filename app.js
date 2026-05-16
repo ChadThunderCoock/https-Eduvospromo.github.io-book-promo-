@@ -17,6 +17,12 @@ const PAIRS = {
   "AUD/USD": { price: 0.66200, spread: 0.00015, pip: 0.0001, vol: 0.00030, quote: "USD" },
   "USD/CHF": { price: 0.90400, spread: 0.00016, pip: 0.0001, vol: 0.00030, quote: "USD" },
   "USD/CAD": { price: 1.36500, spread: 0.00018, pip: 0.0001, vol: 0.00032, quote: "CAD" },
+  // Deriv-style synthetic index (MT5): no mean reversion, high constant
+  // volatility, multiplicative random walk, traded 24/7.
+  "Volatility 100 Index": {
+    price: 1200.00, spread: 0.10, pip: 0.01, vol: 0.012, quote: "USD",
+    synthetic: true, contractSize: 100, digits: 2,
+  },
 };
 
 /* ---------- State ---------- */
@@ -78,10 +84,17 @@ function tickPrices() {
   for (const [pair, cfg] of Object.entries(PAIRS)) {
     const m = market[pair];
     m.prev = m.mid;
-    // random walk with slight mean reversion toward the configured base price
-    const drift = (cfg.price - m.mid) * 0.01;
-    const shock = (Math.random() - 0.5) * 2 * cfg.vol;
-    let mid = m.mid + drift + shock;
+    let mid;
+    if (cfg.synthetic) {
+      // Pure multiplicative random walk — synthetic indices do not revert.
+      const shock = (Math.random() - 0.5) * 2 * cfg.vol;
+      mid = m.mid * (1 + shock);
+    } else {
+      // Random walk with slight mean reversion toward the base price.
+      const drift = (cfg.price - m.mid) * 0.01;
+      const shock = (Math.random() - 0.5) * 2 * cfg.vol;
+      mid = m.mid + drift + shock;
+    }
     if (mid <= 0) mid = cfg.price;
     m.mid = mid;
     m.bid = mid - cfg.spread / 2;
@@ -94,7 +107,13 @@ function tickPrices() {
 /* ---------- Trading ---------- */
 
 function priceDigits(pair) {
-  return PAIRS[pair].quote === "JPY" ? 3 : 5;
+  const cfg = PAIRS[pair];
+  if (cfg.digits != null) return cfg.digits;
+  return cfg.quote === "JPY" ? 3 : 5;
+}
+
+function contractSize(pair) {
+  return PAIRS[pair].contractSize || CONTRACT_SIZE;
 }
 
 function fmtPrice(pair, p) {
@@ -117,7 +136,7 @@ function positionPL(pos) {
   const priceDiff = pos.side === "buy"
     ? closePrice - pos.openPrice
     : pos.openPrice - closePrice;
-  const units = pos.volume * CONTRACT_SIZE;
+  const units = pos.volume * contractSize(pos.pair);
   let pl = priceDiff * units;
   // Convert to USD when the quote currency is not USD.
   if (cfg.quote !== "USD") {
@@ -130,13 +149,13 @@ function positionPL(pos) {
 function requiredMargin(pair, volume) {
   const m = market[pair];
   const cfg = PAIRS[pair];
-  const notionalQuote = volume * CONTRACT_SIZE * m.ask;
+  const notionalQuote = volume * contractSize(pair) * m.ask;
   // Notional expressed in USD.
   let notionalUsd;
   if (cfg.quote === "USD") {
     notionalUsd = notionalQuote; // e.g. EUR/USD: quote is USD
   } else {
-    notionalUsd = volume * CONTRACT_SIZE; // base is USD (USD/XXX)
+    notionalUsd = volume * contractSize(pair); // base is USD (USD/XXX)
   }
   return notionalUsd / LEVERAGE;
 }
@@ -282,6 +301,10 @@ function renderTicket() {
     }
     sel.value = selectedPair;
   }
+  document.getElementById("ticketHint").textContent =
+    `1 lot = ${contractSize(selectedPair).toLocaleString()} units. ` +
+    `Leverage ${LEVERAGE}:1.` +
+    (PAIRS[selectedPair].synthetic ? " Synthetic index — trades 24/7." : "");
   const m = market[selectedPair];
   document.getElementById("ticketBid").textContent = fmtPrice(selectedPair, m.bid);
   document.getElementById("ticketAsk").textContent = fmtPrice(selectedPair, m.ask);
