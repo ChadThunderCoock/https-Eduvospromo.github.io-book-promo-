@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Forex Paper Trader</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <h1>Forex Paper Trader</h1>
+  <div class="account">
+    <div class="stat"><span class="label">Balance</span><span id="balance" class="value">$0.00</span></div>
+    <div class="stat"><span class="label">Equity</span><span id="equity" class="value">$0.00</span></div>
+    <div class="stat"><span class="label">Used Margin</span><span id="margin" class="value">$0.00</span></div>
+    <div class="stat"><span class="label">Free Margin</span><span id="freeMargin" class="value">$0.00</span></div>
+    <div class="stat"><span class="label">Open P/L</span><span id="openPL" class="value">$0.00</span></div>
+    <button id="resetBtn" class="reset" title="Reset account to starting balance">Reset</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel quotes">
+    <h2>Market Watch</h2>
+    <table>
+      <thead><tr><th>Pair</th><th>Bid</th><th>Ask</th><th>Change</th></tr></thead>
+      <tbody id="quotesBody"></tbody>
+    </table>
+  </section>
+
+  <section class="panel chart-panel">
+    <h2 id="chartTitle">Chart</h2>
+    <canvas id="chart" width="640" height="280"></canvas>
+  </section>
+
+  <section class="panel ticket">
+    <h2>New Order</h2>
+    <label>Pair
+      <select id="orderPair"></select>
+    </label>
+    <label>Volume (lots)
+      <input id="orderVolume" type="number" min="0.01" step="0.01" value="0.10" />
+    </label>
+    <p id="ticketHint" class="hint"></p>
+    <div class="ticket-prices">
+      <span>Sell <strong id="ticketBid">-</strong></span>
+      <span>Buy <strong id="ticketAsk">-</strong></span>
+    </div>
+    <div class="ticket-actions">
+      <button id="sellBtn" class="sell">Sell</button>
+      <button id="buyBtn" class="buy">Buy</button>
+    </div>
+    <p id="orderMsg" class="msg"></p>
+  </section>
+
+  <section class="panel positions">
+    <h2>Open Positions</h2>
+    <table>
+      <thead><tr><th>Pair</th><th>Side</th><th>Vol</th><th>Open</th><th>Current</th><th>P/L</th><th></th></tr></thead>
+      <tbody id="positionsBody"></tbody>
+    </table>
+    <p id="noPositions" class="empty">No open positions.</p>
+  </section>
+
+  <section class="panel history">
+    <h2>Trade History</h2>
+    <table>
+      <thead><tr><th>Time</th><th>Pair</th><th>Side</th><th>Vol</th><th>Open</th><th>Close</th><th>P/L</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+    <p id="noHistory" class="empty">No closed trades yet.</p>
+  </section>
+</main>
+
+<footer>
+  <p>Simulated prices for educational use only. No real money is involved.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
