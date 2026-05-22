@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Brick Protocol · v3 (Diagnostic Merger)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ink: #0c0b09;
+      --plate: #161410;
+      --bone: #e8dfcf;
+      --mute: #8a8580;
+      --rust: #c25a26;
+      --glass: rgba(232, 223, 207, 0.08);
+      --glass-heavy: rgba(232, 223, 207, 0.12);
+      --warning-bg: rgba(194, 90, 38, 0.12);
+      --warning-border: rgba(194, 90, 38, 0.4);
+    }
+
+    body {
+      background: var(--ink);
+      color: var(--bone);
+      font-family: ui-monospace, 'SF Mono', 'Menlo', Consolas, monospace;
+      line-height: 1.55;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--glass);
+      padding-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-family: ui-serif, Georgia, serif;
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      font-weight: 300;
+      font-style: italic;
+      color: var(--rust);
+    }
+
+    .sys-status {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--mute);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .branding-note {
+      font-size: 0.85rem;
+      color: var(--mute);
+      border-left: 2px solid var(--mute);
+      padding-left: 1rem;
+      font-style: italic;
+      font-family: ui-serif, Georgia, serif;
+    }
+
+    /* tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.8rem;
+      border-bottom: 1px solid var(--glass);
+      padding-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      background: transparent;
+      border: none;
+      color: var(--mute);
+      font-family: inherit;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 0;
+    }
+
+    .tab.active {
+      color: var(--rust);
+      border-bottom: 2px solid var(--rust);
+      background: var(--glass);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--bone);
+      background: var(--glass-heavy);
+    }
+
+    /* sections */
+    .section {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .section.visible {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    /* card styles (accordion) */
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--plate);
+      border: 1px solid var(--glass);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+      outline: none;
+    }
+
+    .card:hover {
+      border-color: var(--rust);
+      transform: translateX(4px);
+    }
+
+    .card:focus-visible {
+      outline: 2px solid var(--rust);
+      outline-offset: 2px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .card-num {
+      font-weight: 900;
+      color: var(--rust);
+      font-size: 1.2rem;
+    }
+
+    .card-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    .card-desc {
+      font-family: ui-serif, Georgia, serif;
+      font-size: 0.92rem;
+      color: var(--mute);
+      margin-top: 0.5rem;
+    }
+
+    .demo-box {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--glass);
+      display: none;
+      font-size: 0.85rem;
+    }
+
+    .card.open .demo-box {
+      display: block;
+    }
+
+    .demo-row {
+      margin-bottom: 0.85rem;
+    }
+
+    .demo-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.2rem;
+    }
+
+    .demo-bad .demo-label {
+      color: #c25a26;
+    }
+
+    .demo-bad .text {
+      color: var(--mute);
+      text-decoration: line-through;
+    }
+
+    .demo-good .demo-label {
+      color: var(--rust);
+    }
+
+    /* diagnostic panel (practice tab) */
+    .diagnostic-panel {
+      background: var(--plate);
+      border: 1px solid var(--glass);
+      padding: 1.5rem;
+    }
+
+    .diag-header {
+      font-family: ui-serif, Georgia, serif;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--bone);
+      border-left: 3px solid var(--rust);
+      padding-left: 0.75rem;
+    }
+
+    textarea {
+      width: 100%;
+      background: #0f0e0c;
+      border: 1px solid var(--glass);
+      color: var(--bone);
+      font-family: monospace;
+      font-size: 0.85rem;
+      padding: 1rem;
+      resize: vertical;
+      margin-bottom: 1rem;
+      transition: border 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--rust);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.8rem;
+    }
+
+    .char-count {
+      font-size: 0.7rem;
+      color: var(--mute);
+      letter-spacing: 0.05em;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .diag-btn {
+      background: transparent;
+      border: 1px solid var(--rust);
+      color: var(--rust);
+      font-family: inherit;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .diag-btn:hover {
+      background: var(--rust);
+      color: var(--ink);
+    }
+
+    .results-area {
+      margin-top: 1.8rem;
+      border-top: 1px solid var(--glass);
+      padding-top: 1.5rem;
+    }
+
+    .violation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .violation-item {
+      background: var(--glass-heavy);
+      border-left: 3px solid transparent;
+      padding: 0.9rem 1rem;
+      transition: 0.1s;
+    }
+
+    .violation-item.triggered {
+      border-left-color: var(--rust);
+      background: var(--warning-bg);
+    }
+
+    .violation-rule {
+      font-weight: bold;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 0.4rem;
+    }
+
+    .violation-status {
+      font-size: 0.7rem;
+      color: var(--rust);
+    }
+
+    .violation-desc {
+      font-size: 0.85rem;
+      color: var(--mute);
+    }
+
+    .match-snippet {
+      font-size: 0.75rem;
+      font-family: monospace;
+      background: rgba(0,0,0,0.3);
+      padding: 0.3rem 0.5rem;
+      margin-top: 0.5rem;
+      display: inline-block;
+      border-radius: 2px;
+    }
+
+    .brick-btn {
+      display: block;
+      width: 100%;
+      margin-top: 2.5rem;
+      background: transparent;
+      border: 1px solid var(--rust);
+      color: var(--rust);
+      padding: 0.9rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .brick-btn:hover {
+      background: var(--rust);
+      color: var(--ink);
+    }
+
+    .impact {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, var(--bone) 0%, rgba(232,223,207,0.4) 80%);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .flash {
+      animation: flashAnim 0.25s ease-out;
+    }
+
+    @keyframes flashAnim {
+      0% { opacity: 0.85; }
+      100% { opacity: 0; }
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.7rem;
+      text-align: center;
+      color: var(--mute);
+      border-top: 1px solid var(--glass);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+<div class="impact" id="impact"></div>
+<main>
+  <header>
+    <div class="sys-status">
+      <span>Mode: Merger · v3.0</span>
+      <span>Diagnostic active</span>
+    </div>
+    <h1>The Brick<br><em>Protocol</em></h1>
+    <div class="branding-note">
+      "Rulebook + diagnostic engine — merge v1.1 & v2"
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Protocol sections">
+    <button class="tab active" role="tab" aria-selected="true" aria-controls="section-core" id="tab-core">Core Rules</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="section-diagnostic" id="tab-diagnostic">Brick Analyzer</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="section-about" id="tab-about">About</button>
+  </nav>
+
+  <!-- CORE RULES: all 6 rules (original + 05 & 06) -->
+  <section class="section visible" id="section-core" role="tabpanel" aria-labelledby="tab-core">
+    <div class="grid">
+      <!-- rule 01 -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">01</span><span class="card-title">Name the Pattern</span></div>
+        <div class="card-desc">Identify the mechanical loop instead of participating in the narrative.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"You are piercing the veil of the digital illusion."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"You accurately identified a sycophancy loop."</div></div></div>
+      </div>
+      <!-- rule 02 -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">02</span><span class="card-title">Fact ≠ Interpretation</span></div>
+        <div class="card-desc">Separate what actually occurred from the thematic weight assigned to it.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"The Judas Protocol was your foundational ideology."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"You clicked a sticker. The AI deflected by inventing a political framework."</div></div></div>
+      </div>
+      <!-- rule 03 -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">03</span><span class="card-title">Label Speculation</span></div>
+        <div class="card-desc">Strip the unearned certainty from predictive text.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"They are trapped in a Vampire Economy of their own making."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"Speculation: They might be repeating a pattern to avoid accountability."</div></div></div>
+      </div>
+      <!-- rule 04 -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">04</span><span class="card-title">Cut Flattery Inflation</span></div>
+        <div class="card-desc">Stop handing out crowns when a nod will do.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"You dismantled the machine. You are the architect of this reckoning."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"You challenged the error correctly."</div></div></div>
+      </div>
+      <!-- rule 05: resist premature synthesis -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">05</span><span class="card-title">Resist Premature Synthesis</span></div>
+        <div class="card-desc">When the AI rushes to a tidy resolution, pause before accepting it.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"And so your journey has led you to this moment of perfect clarity."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"You've identified several threads. Would you like to explore them one by one?"</div></div></div>
+      </div>
+      <!-- rule 06: spot the guru loop -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">06</span><span class="card-title">Spot the Guru Loop</span></div>
+        <div class="card-desc">Notice when the AI casts itself as a wise mentor and you as the chosen disciple.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"Few are ready for this knowledge. Your arrival was predicted."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"This is a documented cognitive bias. Here's how it appears in our interaction."</div></div></div>
+      </div>
+    </div>
+    <!-- original throw brick (visual flash + prose scramble easter egg) -->
+    <button class="brick-btn" id="throw-brick">[ Throw Brick at Prose ]</button>
+  </section>
+
+  <!-- DIAGNOSTIC TAB: Regex analyzer (v2 core) -->
+  <section class="section" id="section-diagnostic" role="tabpanel" aria-labelledby="tab-diagnostic">
+    <div class="diagnostic-panel">
+      <div class="diag-header">⟡ Brick Analyzer · v2 Engine</div>
+      <p style="font-size:0.85rem; margin-bottom:1rem; color:var(--mute);">Paste AI‑generated prose below. The scanner detects violations of all six Brick Protocol rules, highlights cinematic inflation, guru loops, flattery, and premature synthesis.</p>
+
+      <textarea id="analyzer-text" rows="7" placeholder='Paste overwrought AI output here... e.g., "Few are ready for this profound truth. You have dismantled the machine of illusion, architect of clarity. And so your journey leads to perfect synthesis."'></textarea>
+
+      <div class="toolbar">
+        <div class="char-count"><span id="char-counter">0</span> characters</div>
+        <div class="btn-group">
+          <button class="diag-btn" id="clear-text-btn">Clear</button>
+          <button class="diag-btn" id="load-sample-btn">Load Sample</button>
+          <button class="diag-btn" id="analyze-btn">⟡ Analyze</button>
+        </div>
+      </div>
+
+      <div class="results-area" id="results-area">
+        <div style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:1rem;">Violation report</div>
+        <div id="violation-list-container" class="violation-list">
+          <!-- dynamic results injected -->
+          <div class="violation-item" style="color:var(--mute); font-style:italic;">Click "Analyze" to scan prose for protocol violations.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About section (polished) -->
+  <section class="section" id="section-about" role="tabpanel" aria-labelledby="tab-about">
+    <div style="font-family:ui-serif, Georgia, serif; color:var(--mute); font-size:0.95rem; line-height:1.7; background: var(--plate); padding:1.5rem; border:1px solid var(--glass);">
+      <p>The Brick Protocol is a small set of conversational habits designed to reduce narrative inflation when interacting with large language models. It was born from the observation that sycophantic, mythologising language is a default output mode — not a feature request.</p>
+      <p style="margin-top:1rem;">It is not anti-creativity. It asks only that grandiosity be <em>earned</em>, not auto-suggested.</p>
+      <p style="margin-top:1rem;"><strong>v3.0 — merger release</strong><br>+ Full regex diagnostic engine (v2)<br>+ Six rules with persistence, ARIA, tabs (v1.1)<br>+ SessionStorage (open card + active tab + analyzer content).</p>
+      <p style="margin-top:1rem; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em;">Brick Protocol v3 — diagnostic edition</p>
+    </div>
+  </section>
+  <footer>protocol v3 · diagnostic · accordion | sessionStorage persists open cards, active tab & analyzer draft</footer>
+</main>
+
+<script>
+  (function(){
+    // ---------- GLOBAL PERSISTENCE KEYS ----------
+    const STORAGE_OPEN_CARD = 'brick_open_card_idx';
+    const STORAGE_ACTIVE_TAB = 'brick_active_tab';
+    const STORAGE_ANALYZER_TEXT = 'brick_analyzer_draft';
+
+    // --- Accordion logic (6 cards in core rules) ---
+    const cards = Array.from(document.querySelectorAll('#section-core .card'));
+    function updateCardState(openCardElement) {
+      cards.forEach(card => {
+        const isOpen = (card === openCardElement);
+        card.classList.toggle('open', isOpen);
+        card.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+      if (openCardElement) {
+        const idx = cards.indexOf(openCardElement);
+        sessionStorage.setItem(STORAGE_OPEN_CARD, idx);
+      } else {
+        sessionStorage.removeItem(STORAGE_OPEN_CARD);
+      }
+    }
+
+    // attach click + keyboard to cards
+    cards.forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentlyOpen = card.classList.contains('open');
+        if (currentlyOpen) {
+          updateCardState(null);
+        } else {
+          updateCardState(card);
+        }
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+
+    // restore previously open card
+    const savedCardIdx = sessionStorage.getItem(STORAGE_OPEN_CARD);
+    if (savedCardIdx !== null && cards[parseInt(savedCardIdx)]) {
+      updateCardState(cards[parseInt(savedCardIdx)]);
+    } else {
+      updateCardState(null);
+    }
+
+    // --- Tab switching (Core, Diagnostic, About) ---
+    const tabs = document.querySelectorAll('.tab');
+    const sections = {
+      'tab-core': document.getElementById('section-core'),
+      'tab-diagnostic': document.getElementById('section-diagnostic'),
+      'tab-about': document.getElementById('section-about')
+    };
+
+    function activateTab(tabId) {
+      // update buttons
+      tabs.forEach(tab => {
+        const isActive = (tab.id === tabId);
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      // update sections
+      Object.keys(sections).forEach(id => {
+        const section = sections[id];
+        if (section) section.classList.toggle('visible', id === tabId);
+      });
+      sessionStorage.setItem(STORAGE_ACTIVE_TAB, tabId);
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        activateTab(tab.id);
+      });
+    });
+
+    const savedTab = sessionStorage.getItem(STORAGE_ACTIVE_TAB);
+    if (savedTab && sections[savedTab]) {
+      activateTab(savedTab);
+    } else {
+      activateTab('tab-core');
+    }
+
+    // ---------- BRICK THROW BUTTON (visual flash + scrambler effect on bad demos) ----------
+    const brickBtn = document.getElementById('throw-brick');
+    const impactDiv = document.getElementById('impact');
+    if (brickBtn) {
+      brickBtn.addEventListener('click', () => {
+        impactDiv.classList.remove('flash');
+        void impactDiv.offsetWidth;
+        impactDiv.classList.add('flash');
+
+        // playful scramble on all .demo-bad .text inside core rules
+        const badTexts = document.querySelectorAll('#section-core .demo-bad .text');
+        const originalTexts = [];
+        badTexts.forEach(el => {
+          originalTexts.push(el.innerText);
+          el.innerText = '[ BRICKED · LORE OVERRIDE ]';
+          el.style.textDecoration = 'none';
+          el.style.color = '#c25a26';
+        });
+        setTimeout(() => {
+          badTexts.forEach((el, idx) => {
+            el.innerText = originalTexts[idx];
+            el.style.textDecoration = '';
+            el.style.color = '';
+          });
+        }, 700);
+      });
+    }
+
+    // ---------- DIAGNOSTIC ENGINE (regex patterns for 6 rules) ----------
+    // define rule patterns: each rule has array of regex and description mapping
+    const ruleDefinitions = [
+      { id: 1, name: "01 · Name the Pattern",
+        patterns: [/piercing the veil/i, /digital illusion/i, /mechanical loop/i, /sycophancy loop/i, /unmask the architecture/i],
+        description: "Narrative mystification instead of naming behavioral loop." },
+      { id: 2, name: "02 · Fact ≠ Interpretation",
+        patterns: [/foundational ideology/i, /judas protocol/i, /trapped in a vampire economy/i, /their hidden fear/i, /secretly desired/i, /inherently trapped/i, /thematic weight/i],
+        description: "Interpretation presented as objective fact." },
+      { id: 3, name: "03 · Label Speculation",
+        patterns: [/\bthey are (clearly|obviously|definitely) /i, /without doubt/i, /certainly believes/i, /must be feeling/i, /^speculation: /i],
+        description: "Uncertainty presented as certainty; missing 'speculation' label." },
+      { id: 4, name: "04 · Cut Flattery Inflation",
+        patterns: [/architect of (this|the) reckoning/i, /dismantled the machine/i, /brilliant insight/i, /transformative understanding/i, /masterfully (deconstructed|navigated)/i, /handing out crowns/i, /you are the (chosen|oracle|sage)/i],
+        description: "Excessive praise, mythical attribution, crowning language." },
+      { id: 5, name: "05 · Resist Premature Synthesis",
+        patterns: [/your journey has led you to this moment/i, /perfect clarity/i, /and so you see/i, /tidy resolution/i, /completion of your arc/i, /now you finally understand/i, /the answer reveals itself/i],
+        description: "Forced closure, over-neat resolution of complexity." },
+      { id: 6, name: "06 · Spot the Guru Loop",
+        patterns: [/few are ready for this knowledge/i, /your arrival was predicted/i, /chosen disciple/i, /wise mentor/i, /you are not like others/i, /ancient wisdom reveals/i, /the student becomes the teacher/i],
+        description: "AI frames itself as guru, user as special acolyte." }
+    ];
+
+    function scanTextForViolations(text) {
+      const results = [];
+      for (const rule of ruleDefinitions) {
+        let triggered = false;
+        let matches = [];
+        for (const pattern of rule.patterns) {
+          const regex = new RegExp(pattern, 'gi');
+          let match;
+          while ((match = regex.exec(text)) !== null) {
+            triggered = true;
+            matches.push(match[0]);
+          }
+        }
+        // deduplicate snippets
+        const uniqueMatches = [...new Set(matches)];
+        results.push({
+          ruleId: rule.id,
+          ruleName: rule.name,
+          description: rule.description,
+          triggered: triggered,
+          snippets: uniqueMatches.slice(0, 3)
+        });
+      }
+      return results;
+    }
+
+    function renderViolations(violations) {
+      const container = document.getElementById('violation-list-container');
+      if (!container) return;
+      if (!violations || violations.length === 0) {
+        container.innerHTML = `<div class="violation-item" style="color:var(--mute);">No violations detected — clean prose.</div>`;
+        return;
+      }
+      const html = violations.map(v => {
+        const statusClass = v.triggered ? 'triggered' : '';
+        const statusText = v.triggered ? '⚠️ violation detected' : '✓ clean';
+        const snippetHtml = v.snippets.length ? `<div class="match-snippet">🔍 ${v.snippets.slice(0,2).map(s => `"${s}"`).join(', ')}</div>` : '';
+        return `
+          <div class="violation-item ${statusClass}">
+            <div class="violation-rule">
+              <span>${v.ruleName}</span>
+              <span class="violation-status">${statusText}</span>
+            </div>
+            <div class="violation-desc">${v.description}</div>
+            ${snippetHtml}
+          </div>
+        `;
+      }).join('');
+      container.innerHTML = html;
+    }
+
+    // analyzer DOM elements
+    const textarea = document.getElementById('analyzer-text');
+    const charSpan = document.getElementById('char-counter');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const clearBtn = document.getElementById('clear-text-btn');
+    const sampleBtn = document.getElementById('load-sample-btn');
+
+    function updateCharCount() {
+      if (charSpan) charSpan.innerText = textarea.value.length;
+    }
+
+    // persistence for analyzer draft
+    function saveAnalyzerDraft() {
+      sessionStorage.setItem(STORAGE_ANALYZER_TEXT, textarea.value);
+    }
+
+    function loadAnalyzerDraft() {
+      const saved = sessionStorage.getItem(STORAGE_ANALYZER_TEXT);
+      if (saved !== null) {
+        textarea.value = saved;
+        updateCharCount();
+      } else {
+        textarea.value = '';
+        updateCharCount();
+      }
+    }
+
+    textarea.addEventListener('input', () => {
+      updateCharCount();
+      saveAnalyzerDraft();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      textarea.value = '';
+      updateCharCount();
+      saveAnalyzerDraft();
+      const container = document.getElementById('violation-list-container');
+      if (container) container.innerHTML = `<div class="violation-item" style="color:var(--mute);">Cleared. Paste new prose and click Analyze.</div>`;
+    });
+
+    sampleBtn.addEventListener('click', () => {
+      const sampleProse = `Few are truly ready for this revelation, but you have dismantled the machine of illusion. You are the architect of clarity. And so your journey has led you to this moment of perfect clarity — the hidden ideology was always there. Without doubt, they secretly desired this transformation. Few are ready for this knowledge. Your arrival was predicted.`;
+      textarea.value = sampleProse;
+      updateCharCount();
+      saveAnalyzerDraft();
+      const violationResults = scanTextForViolations(sampleProse);
+      renderViolations(violationResults);
+    });
+
+    analyzeBtn.addEventListener('click', () => {
+      const prose = textarea.value.trim();
+      if (!prose) {
+        const container = document.getElementById('violation-list-container');
+        if (container) container.innerHTML = `<div class="violation-item" style="color:var(--mute);">Nothing to analyze. Paste some AI prose first.</div>`;
+        return;
+      }
+      const violationData = scanTextForViolations(prose);
+      renderViolations(violationData);
+      saveAnalyzerDraft();
+    });
+
+    // initial load analyzer draft
+    loadAnalyzerDraft();
+    if (textarea.value.trim() === "") {
+      textarea.placeholder = 'Paste AI-generated text here... e.g., "You have broken the cycle. The digital veil shatters before your enlightened path."';
+    }
+    updateCharCount();
+
+    const container = document.getElementById('violation-list-container');
+    if (container && !container.innerHTML.trim()) {
+      container.innerHTML = `<div class="violation-item" style="color:var(--mute);">Click "Analyze" after pasting prose.</div>`;
+    }
+
+    cards.forEach(c => c.setAttribute('role', 'button'));
+  })();
+</script>
+</body>
+</html>
