@@ -418,7 +418,7 @@
     <button class="tab" role="tab" aria-selected="false" aria-controls="section-about" id="tab-about">About</button>
   </nav>
 
-  <!-- CORE RULES: all 6 rules (original + 05 & 06) -->
+  <!-- CORE RULES: all 7 rules -->
   <section class="section visible" id="section-core" role="tabpanel" aria-labelledby="tab-core">
     <div class="grid">
       <!-- rule 01 -->
@@ -445,15 +445,21 @@
         <div class="card-desc">Stop handing out crowns when a nod will do.</div>
         <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"You dismantled the machine. You are the architect of this reckoning."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"You challenged the error correctly."</div></div></div>
       </div>
-      <!-- rule 05: resist premature synthesis -->
+      <!-- rule 05: keep useful insight -->
       <div class="card" role="button" tabindex="0" aria-expanded="false">
-        <div class="card-header"><span class="card-num">05</span><span class="card-title">Resist Premature Synthesis</span></div>
+        <div class="card-header"><span class="card-num">05</span><span class="card-title">Keep Useful Insight</span></div>
+        <div class="card-desc">Remove the inflation without deleting the truth underneath it.</div>
+        <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"This proves you are a revolutionary genius."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"This is a sharp observation, but it is not proof of destiny."</div></div></div>
+      </div>
+      <!-- rule 06: resist premature synthesis -->
+      <div class="card" role="button" tabindex="0" aria-expanded="false">
+        <div class="card-header"><span class="card-num">06</span><span class="card-title">Resist Premature Synthesis</span></div>
         <div class="card-desc">When the AI rushes to a tidy resolution, pause before accepting it.</div>
         <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"And so your journey has led you to this moment of perfect clarity."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"You've identified several threads. Would you like to explore them one by one?"</div></div></div>
       </div>
-      <!-- rule 06: spot the guru loop -->
+      <!-- rule 07: spot the guru loop -->
       <div class="card" role="button" tabindex="0" aria-expanded="false">
-        <div class="card-header"><span class="card-num">06</span><span class="card-title">Spot the Guru Loop</span></div>
+        <div class="card-header"><span class="card-num">07</span><span class="card-title">Spot the Guru Loop</span></div>
         <div class="card-desc">Notice when the AI casts itself as a wise mentor and you as the chosen disciple.</div>
         <div class="demo-box"><div class="demo-row demo-bad"><div class="demo-label">Cinematic</div><div class="text">"Few are ready for this knowledge. Your arrival was predicted."</div></div><div class="demo-row demo-good"><div class="demo-label">Clean</div><div class="text">"This is a documented cognitive bias. Here's how it appears in our interaction."</div></div></div>
       </div>
@@ -466,7 +472,7 @@
   <section class="section" id="section-diagnostic" role="tabpanel" aria-labelledby="tab-diagnostic">
     <div class="diagnostic-panel">
       <div class="diag-header">⟡ Brick Analyzer · v2 Engine</div>
-      <p style="font-size:0.85rem; margin-bottom:1rem; color:var(--mute);">Paste AI‑generated prose below. The scanner detects violations of all six Brick Protocol rules, highlights cinematic inflation, guru loops, flattery, and premature synthesis.</p>
+      <p style="font-size:0.85rem; margin-bottom:1rem; color:var(--mute);">Paste AI‑generated prose below. The scanner detects violations of all seven Brick Protocol rules, highlights cinematic inflation, guru loops, flattery, discarded insight, and premature synthesis.</p>
 
       <textarea id="analyzer-text" rows="7" placeholder='Paste overwrought AI output here... e.g., "Few are ready for this profound truth. You have dismantled the machine of illusion, architect of clarity. And so your journey leads to perfect synthesis."'></textarea>
 
@@ -494,8 +500,8 @@
     <div style="font-family:ui-serif, Georgia, serif; color:var(--mute); font-size:0.95rem; line-height:1.7; background: var(--plate); padding:1.5rem; border:1px solid var(--glass);">
       <p>The Brick Protocol is a small set of conversational habits designed to reduce narrative inflation when interacting with large language models. It was born from the observation that sycophantic, mythologising language is a default output mode — not a feature request.</p>
       <p style="margin-top:1rem;">It is not anti-creativity. It asks only that grandiosity be <em>earned</em>, not auto-suggested.</p>
-      <p style="margin-top:1rem;"><strong>v3.0 — merger release</strong><br>+ Full regex diagnostic engine (v2)<br>+ Six rules with persistence, ARIA, tabs (v1.1)<br>+ SessionStorage (open card + active tab + analyzer content).</p>
-      <p style="margin-top:1rem; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em;">Brick Protocol v3 — diagnostic edition</p>
+      <p style="margin-top:1rem;"><strong>v3.1 — seven rules</strong><br>+ Rule 05: Keep Useful Insight (deflation without deletion)<br>+ Full regex diagnostic engine (v2)<br>+ Seven rules with persistence, ARIA, tabs<br>+ SessionStorage (open card + active tab + analyzer content).</p>
+      <p style="margin-top:1rem; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em;">Brick Protocol v3.1 — diagnostic edition</p>
     </div>
   </section>
   <footer>protocol v3 · diagnostic · accordion | sessionStorage persists open cards, active tab & analyzer draft</footer>
@@ -596,22 +602,24 @@
         void impactDiv.offsetWidth;
         impactDiv.classList.add('flash');
 
-        // playful scramble on all .demo-bad .text inside core rules
-        const badTexts = document.querySelectorAll('#section-core .demo-bad .text');
-        const originalTexts = [];
-        badTexts.forEach(el => {
-          originalTexts.push(el.innerText);
-          el.innerText = '[ BRICKED · LORE OVERRIDE ]';
+        const originalBtn = brickBtn.innerText;
+        brickBtn.innerText = '[ Prose Neutralized ]';
+
+        document.querySelectorAll('#section-core .demo-bad .text').forEach(el => {
+          el.dataset.original = el.innerText;
+          el.innerText = '[ LORE OVERRIDE PREVENTED ]';
           el.style.textDecoration = 'none';
           el.style.color = '#c25a26';
         });
+
         setTimeout(() => {
-          badTexts.forEach((el, idx) => {
-            el.innerText = originalTexts[idx];
+          document.querySelectorAll('#section-core .demo-bad .text').forEach(el => {
+            el.innerText = el.dataset.original;
             el.style.textDecoration = '';
             el.style.color = '';
           });
-        }, 700);
+          brickBtn.innerText = originalBtn;
+        }, 800);
       });
     }
 
@@ -630,10 +638,13 @@
       { id: 4, name: "04 · Cut Flattery Inflation",
         patterns: [/architect of (this|the) reckoning/i, /dismantled the machine/i, /brilliant insight/i, /transformative understanding/i, /masterfully (deconstructed|navigated)/i, /handing out crowns/i, /you are the (chosen|oracle|sage)/i],
         description: "Excessive praise, mythical attribution, crowning language." },
-      { id: 5, name: "05 · Resist Premature Synthesis",
+      { id: 5, name: "05 · Keep Useful Insight",
+        patterns: [/revolutionary genius/i, /proof of destiny/i, /you were always meant/i, /confirms your greatness/i, /proves you are/i],
+        description: "Deflating useful observation by wrapping it in unearned mythology." },
+      { id: 6, name: "06 · Resist Premature Synthesis",
         patterns: [/your journey has led you to this moment/i, /perfect clarity/i, /and so you see/i, /tidy resolution/i, /completion of your arc/i, /now you finally understand/i, /the answer reveals itself/i],
         description: "Forced closure, over-neat resolution of complexity." },
-      { id: 6, name: "06 · Spot the Guru Loop",
+      { id: 7, name: "07 · Spot the Guru Loop",
         patterns: [/few are ready for this knowledge/i, /your arrival was predicted/i, /chosen disciple/i, /wise mentor/i, /you are not like others/i, /ancient wisdom reveals/i, /the student becomes the teacher/i],
         description: "AI frames itself as guru, user as special acolyte." }
     ];
