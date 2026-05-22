@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Promo - Keep Useful Insight</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      color: #e0e0e0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-num {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #c25a26;
+      background: rgba(194, 90, 38, 0.15);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .card-desc {
+      color: #a0a0a0;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .demo-box {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .demo-row {
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 3px solid;
+    }
+
+    .demo-bad {
+      background: rgba(194, 90, 38, 0.1);
+      border-color: #c25a26;
+    }
+
+    .demo-good {
+      background: rgba(76, 175, 80, 0.1);
+      border-color: #4caf50;
+    }
+
+    .demo-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .demo-bad .demo-label {
+      color: #c25a26;
+    }
+
+    .demo-good .demo-label {
+      color: #4caf50;
+    }
+
+    .demo-row .text {
+      font-style: italic;
+      line-height: 1.6;
+      transition: color 0.2s ease;
+    }
+
+    .neutralize-btn {
+      margin-top: 2rem;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #c25a26 0%, #e07b3c 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
+    }
+
+    .neutralize-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(194, 90, 38, 0.4);
+    }
+
+    .neutralize-btn:active {
+      transform: translateY(0);
+    }
+
+    .impact {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.875rem;
+      color: #666;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .impact.flash {
+      animation: flashIn 0.8s ease forwards;
+    }
+
+    @keyframes flashIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      20% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-num">05</span>
+      <span class="card-title">Keep Useful Insight</span>
+    </div>
+    <div class="card-desc">Strip the inflation—keep the truth beneath it.</div>
+    <div class="demo-box">
+      <div class="demo-row demo-bad">
+        <div class="demo-label">Cinematic</div>
+        <div class="text">"This proves you are a revolutionary genius."</div>
+      </div>
+      <div class="demo-row demo-good">
+        <div class="demo-label">Clean</div>
+        <div class="text">"Sharp observation—but not proof of destiny."</div>
+      </div>
+    </div>
+    <button class="neutralize-btn">[ Neutralize Prose ]</button>
+    <div class="impact">Lore override prevented</div>
+  </div>
+
+  <script>
+    const btn = document.querySelector('.neutralize-btn');
+    const impact = document.querySelector('.impact');
+
+    btn.addEventListener('click', () => {
+      impact.classList.remove('flash');
+      void impact.offsetWidth;
+      impact.classList.add('flash');
+
+      const originalBtn = btn.innerText;
+      btn.innerText = "[ Prose Neutralized ]";
+
+      const badTexts = document.querySelectorAll('.demo-bad .text');
+
+      badTexts.forEach(el => {
+        el.dataset.original = el.innerText;
+        el.innerText = "[ LORE OVERRIDE PREVENTED ]";
+        el.style.color = "#c25a26";
+      });
+
+      setTimeout(() => {
+        badTexts.forEach(el => {
+          el.innerText = el.dataset.original;
+          el.style.color = "";
+        });
+        btn.innerText = originalBtn;
+      }, 800);
+    });
+  </script>
+</body>
+</html>
